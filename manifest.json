@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+  "name": "ChatGPT Image Downloader",
+  "version": "1.1.0",
+  "description": "Download all your generated images from your ChatGPT Library with one click. Fully local and privacy-safe.",
+  "permissions": [
+    "https://chatgpt.com/*",
+    "webRequest",
+    "storage",
+    "downloads"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "ChatGPT Image Downloader",
+    "default_icon": {
+      "48": "icon48.png",
+      "96": "icon96.png"
+    }
+  },
+  "icons": {
+    "48": "icon48.png",
+    "96": "icon96.png"
+  }
+}

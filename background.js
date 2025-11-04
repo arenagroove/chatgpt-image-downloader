@@ -1,13 +1,18 @@
 // background.js
 // -----------------------------------------------------------------------------
-// Capture ChatGPT auth headers + run background downloads
+// Capture ChatGPT auth headers + run background downloads with pause/resume
+// + use <img alt> titles from content.js
 // -----------------------------------------------------------------------------
 
 let capturedAuth = null;
 let capturedHeaders = {};
 let activeDownload = null;
+let paused = false;
+let abortFlag = false;
 
-// Capture authentication headers from ChatGPT requests
+// -----------------------------------------------------------------------------
+// Capture authentication headers from both chat.openai.com and chatgpt.com
+// -----------------------------------------------------------------------------
 browser.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
     if (details.url.includes("backend-api")) {
@@ -32,111 +37,201 @@ browser.webRequest.onBeforeSendHeaders.addListener(
 );
 
 // -----------------------------------------------------------------------------
-// Background download logic
+// Helpers
 // -----------------------------------------------------------------------------
-async function runDownloadJob(items) {
-  if (!items || !Array.isArray(items) || items.length === 0) return;
+function sanitizeFilename(str) {
+    if (!str) return "";
+    return str
+        .normalize("NFKD")
+        .replace(
+            /[\p{Emoji_Presentation}\p{Extended_Pictographic}\p{Emoji}\u200D]/gu,
+            ""
+        )
+        .replace(/[^\w\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "_")
+        .slice(0, 80);
+}
 
-  let success = 0;
-  let failed = 0;
-  const usedFilenames = new Set();
+function extractExtension(url, contentType = "") {
+    if (url.includes(".webp") || contentType.includes("webp")) return "webp";
+    if (url.includes(".jpg") || url.includes(".jpeg") || contentType.includes("jpeg"))
+        return "jpg";
+    if (url.includes(".png") || contentType.includes("png")) return "png";
+    return "png";
+}
 
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-  const extractFilename = (url) => {
-    const parts = url.split("/");
-    const last = parts[parts.length - 1];
-    let filename = last.split("?")[0] || "image";
-    if (!filename.includes(".")) {
-      if (url.includes(".webp")) filename += ".webp";
-      else if (url.includes(".jpg") || url.includes(".jpeg")) filename += ".jpg";
-      else filename += ".png";
+function makeUniqueFilename(base, used) {
+    if (!used.has(base)) {
+        used.add(base);
+        return base;
     }
-    return filename;
-  };
-
-  const makeUniqueFilename = (filename) => {
-    if (!usedFilenames.has(filename)) {
-      usedFilenames.add(filename);
-      return filename;
-    }
-    const lastDot = filename.lastIndexOf(".");
-    const name = lastDot > 0 ? filename.substring(0, lastDot) : filename;
-    const ext = lastDot > 0 ? filename.substring(lastDot) : "";
-    const uniqueName = `${name}_${Date.now()}${ext}`;
-    usedFilenames.add(uniqueName);
-    return uniqueName;
-  };
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    let filename = extractFilename(item.url);
-    try {
-      const resp = await fetch(item.url);
-      const contentType = resp.headers.get("content-type") || "";
-      if (!filename.includes(".")) {
-        if (contentType.includes("webp")) filename += ".webp";
-        else if (contentType.includes("jpeg") || contentType.includes("jpg"))
-          filename += ".jpg";
-        else filename += ".png";
-      }
-      const uniqueFilename = makeUniqueFilename(filename);
-      await browser.downloads.download({
-        url: item.url,
-        filename: `chatgpt-images/${uniqueFilename}`,
-        saveAs: false,
-        conflictAction: "uniquify",
-      });
-      success++;
-    } catch (err) {
-      failed++;
-      console.error("Download error:", err);
-    }
-
-    browser.runtime.sendMessage({
-      type: "progress",
-      current: i + 1,
-      total: items.length,
-      success,
-      failed,
-    });
-
-    if (i < items.length - 1) await sleep(300);
-  }
-
-  browser.runtime.sendMessage({
-    type: "complete",
-    success,
-    failed,
-    total: items.length,
-  });
+    const lastDot = base.lastIndexOf(".");
+    const name = lastDot > 0 ? base.substring(0, lastDot) : base;
+    const ext = lastDot > 0 ? base.substring(lastDot) : "";
+    const unique = `${name}_${Date.now()}${ext}`;
+    used.add(unique);
+    return unique;
 }
 
 // -----------------------------------------------------------------------------
-// Message router (popup → background)
+// Core download logic
 // -----------------------------------------------------------------------------
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "getAuth") {
-    sendResponse({
-      authToken: capturedAuth,
-      headers: capturedHeaders,
-    });
-    return true;
-  }
+async function runDownloadJob(items) {
+    if (!items?.length) return;
+    let success = 0;
+    let failed = 0;
+    const used = new Set();
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  if (request.action === "startDownload") {
-    if (activeDownload) {
-      sendResponse({ status: "busy" });
-      return true;
+    console.log(`🎯 Starting download of ${items.length} images`);
+
+    try {
+        for (let i = 0; i < items.length; i++) {
+            if (abortFlag) {
+                console.warn("⛔ Download aborted by user");
+                break;
+            }
+            while (paused) await sleep(300);
+
+            const item = items[i];
+            
+            // Get title directly from API
+            let mappedTitle = item.title || null;
+            
+            // Extract URL for downloading
+            let downloadUrl = item.url || item.download_url || item.asset_pointer || item.file_url;
+            
+            if (!downloadUrl) {
+                console.error(`❌ Item ${i + 1}: Could not find download URL`);
+                failed++;
+                continue;
+            }
+            
+            let cleanTitle = sanitizeFilename(mappedTitle);
+            
+            if (!cleanTitle) {
+                cleanTitle = "image";
+                if (i < 5) {
+                    console.warn(`⚠️ No title found for item ${i + 1}, using default "image"`);
+                }
+            }
+
+            try {
+                const resp = await fetch(downloadUrl);
+                const contentType = resp.headers.get("content-type") || "";
+                const ext = extractExtension(downloadUrl, contentType);
+                const finalName = makeUniqueFilename(`${cleanTitle}.${ext}`, used);
+
+                await browser.downloads.download({
+                    url: downloadUrl,
+                    filename: `chatgpt-images/${finalName}`,
+                    saveAs: false,
+                    conflictAction: "overwrite", // Overwrite instead of creating duplicates
+                });
+                
+                success++;
+            } catch (err) {
+                failed++;
+                console.error("Download error:", err);
+            }
+
+            // Broadcast progress to all ChatGPT tabs
+            browser.tabs.query({ url: "*://chatgpt.com/*" }).then(tabs => {
+                tabs.forEach(tab => {
+                    browser.tabs.sendMessage(tab.id, {
+                        type: "progress",
+                        current: i + 1,
+                        total: items.length,
+                        success,
+                        failed,
+                    }).catch(() => {});
+                });
+            });
+
+            if (i < items.length - 1) await sleep(200);
+        }
+
+        // Broadcast complete to all ChatGPT tabs
+        browser.tabs.query({ url: "*://chatgpt.com/*" }).then(tabs => {
+            tabs.forEach(tab => {
+                browser.tabs.sendMessage(tab.id, {
+                    type: "complete",
+                    success,
+                    failed,
+                    total: items.length,
+                }).catch(() => {});
+            });
+        });
+        
+        console.log(`✅ Download complete: ${success} success, ${failed} failed`);
+    } finally {
+        activeDownload = null;
+        paused = false;
+        abortFlag = false;
     }
-    activeDownload = runDownloadJob(request.items)
-      .catch((e) => console.error("Background download failed:", e))
-      .finally(() => (activeDownload = null));
-    sendResponse({ status: "started" });
-    return true;
-  }
+}
 
-  return true;
+// -----------------------------------------------------------------------------
+// Message router - handles popup actions
+// -----------------------------------------------------------------------------
+browser.runtime.onMessage.addListener((req, sender, sendResponse) => {
+    // Handle popup actions
+    switch (req.action) {
+        case "getAuth":
+            sendResponse({ authToken: capturedAuth, headers: capturedHeaders });
+            return true;
+
+        case "getDownloadState":
+            // Return current download state
+            sendResponse({ 
+                isDownloading: !!activeDownload,
+                isPaused: paused
+            });
+            return true;
+
+        case "resetState":
+            abortFlag = true;
+            paused = false;
+            activeDownload = null;
+            sendResponse({ status: "reset" });
+            return true;
+
+        case "startDownload":
+            abortFlag = false;
+            paused = false;
+            if (activeDownload) {
+                sendResponse({ status: "busy" });
+                return true;
+            }
+            activeDownload = (async () => {
+                try {
+                    await runDownloadJob(req.items);
+                } finally {
+                    activeDownload = null;
+                }
+            })();
+            sendResponse({ status: "started" });
+            return true;
+
+        case "pauseDownload":
+            paused = true;
+            sendResponse({ status: "paused" });
+            return true;
+
+        case "resumeDownload":
+            paused = false;
+            sendResponse({ status: "resumed" });
+            return true;
+
+        case "abortDownload":
+            abortFlag = true;
+            paused = false;
+            sendResponse({ status: "aborted" });
+            return true;
+    }
+    
+    return false;
 });
 
-console.log("✓ ChatGPT Image Downloader background script active");
+console.log("✅ ChatGPT Image Downloader background active (using API titles)");

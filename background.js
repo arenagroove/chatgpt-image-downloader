@@ -1,7 +1,7 @@
 // background.js
 // -----------------------------------------------------------------------------
 // Capture ChatGPT auth headers + run background downloads with pause/resume
-// + use <img alt> titles from content.js
+// + Enhanced duplicate handling (skip, overwrite, rename)
 // -----------------------------------------------------------------------------
 
 let capturedAuth = null;
@@ -69,7 +69,14 @@ function makeUniqueFilename(base, used) {
     const lastDot = base.lastIndexOf(".");
     const name = lastDot > 0 ? base.substring(0, lastDot) : base;
     const ext = lastDot > 0 ? base.substring(lastDot) : "";
-    const unique = `${name}_${Date.now()}${ext}`;
+    
+    // Try incrementing numbers (1), (2), (3), etc.
+    let counter = 1;
+    let unique = `${name} (${counter})${ext}`;
+    while (used.has(unique)) {
+        counter++;
+        unique = `${name} (${counter})${ext}`;
+    }
     used.add(unique);
     return unique;
 }
@@ -81,6 +88,7 @@ async function runDownloadJob(items) {
     if (!items?.length) return;
     let success = 0;
     let failed = 0;
+    const failedItems = []; // Track failed downloads with details
     const used = new Set();
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -105,6 +113,11 @@ async function runDownloadJob(items) {
             if (!downloadUrl) {
                 console.error(`❌ Item ${i + 1}: Could not find download URL`);
                 failed++;
+                failedItems.push({
+                    title: mappedTitle || `Image ${i + 1}`,
+                    reason: 'No download URL found',
+                    index: i + 1
+                });
                 continue;
             }
             
@@ -127,13 +140,18 @@ async function runDownloadJob(items) {
                     url: downloadUrl,
                     filename: `chatgpt-images/${finalName}`,
                     saveAs: false,
-                    conflictAction: "overwrite", // Overwrite instead of creating duplicates
+                    conflictAction: "overwrite",
                 });
                 
                 success++;
             } catch (err) {
                 failed++;
-                console.error("Download error:", err);
+                failedItems.push({
+                    title: mappedTitle || cleanTitle || `Image ${i + 1}`,
+                    reason: err.message || 'Download failed',
+                    index: i + 1
+                });
+                console.error(`❌ Download error for "${mappedTitle}":`, err);
             }
 
             // Broadcast progress to all ChatGPT tabs
@@ -152,18 +170,22 @@ async function runDownloadJob(items) {
             if (i < items.length - 1) await sleep(200);
         }
 
-        // Broadcast complete to all ChatGPT tabs
+        // Broadcast complete to all ChatGPT tabs with failure details
         browser.tabs.query({ url: "*://chatgpt.com/*" }).then(tabs => {
             tabs.forEach(tab => {
                 browser.tabs.sendMessage(tab.id, {
                     type: "complete",
                     success,
                     failed,
+                    failedItems, // Send detailed failure info
                     total: items.length,
                 }).catch(() => {});
             });
         });
         
+        if (failedItems.length > 0) {
+            console.log(`❌ Failed downloads:`, failedItems);
+        }
         console.log(`✅ Download complete: ${success} success, ${failed} failed`);
     } finally {
         activeDownload = null;

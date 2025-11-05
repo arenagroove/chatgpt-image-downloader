@@ -1,27 +1,27 @@
 # ChatGPT Image Downloader
-## Version 2.0.0
+## Version 2.1.0
 
 ### What's Included
 
 📦 **Complete Firefox Extension Package**
 
 **Core Files:**
-- `manifest.json` – Extension configuration  
-- `background.js` – Authentication capture + background download logic  
-- `panel.js` – Floating panel UI injected into Library page  
-- `icon48.png` – 48×48 toolbar icon  
-- `icon96.png` – 96×96 store icon  
+- `manifest.json` — Extension configuration  
+- `background.js` — Authentication capture + background download logic  
+- `panel.js` — Floating panel UI injected into Library page  
+- `icon48.png` — 48×48 toolbar icon  
+- `icon96.png` — 96×96 store icon  
 
 **Documentation:**
-- `README.md` – Complete user documentation  
-- `INSTALL.md` – Quick installation guide  
-- `CHANGELOG.md` – Version history  
-- `VERSION.md` – This file  
+- `README.md` — Complete user documentation  
+- `INSTALL.md` — Quick installation guide  
+- `CHANGELOG.md` — Version history  
+- `VERSION.md` — This file  
 
 **Development:**
-- `.gitignore` – Git ignore rules  
+- `.gitignore` — Git ignore rules  
 
-**Total Size:** ~30 KB (uncompressed)
+**Total Size:** ~35 KB (uncompressed)
 
 ---
 
@@ -31,14 +31,17 @@
 - Automatically captures ChatGPT authentication headers  
 - Injects floating panel UI directly on Library page  
 - Fetches all images from your ChatGPT library (up to 9000)  
+- **Select specific images** with thumbnail previews and checkboxes  
 - Downloads images in full resolution with smart filenames from API  
 - Real-time progress tracking with success/fail counts  
+- **Detailed error reporting** — see exactly which images failed and why  
 - Pause and resume downloads mid-process  
 - Collapsible panel interface (minimize to header-only)  
-- Draggable panel – position anywhere on screen  
+- Draggable panel — position anywhere on screen  
 - Organizes files under `Downloads/chatgpt-images/`  
 - Background downloads continue even when panel is collapsed  
 - Multi-tab state synchronization  
+- **Unified color system** — coherent theming across light and dark modes  
 
 🔒 **Privacy:**
 - No telemetry or tracking  
@@ -52,7 +55,7 @@
 
 ### System Requirements
 
-- **Browser:** Firefox 60 or later  
+- **Browser:** Firefox 109 or later  
 - **OS:** Windows, macOS, or Linux  
 - **Account:** Active ChatGPT account with generated images  
 - **Page:** ChatGPT Library page (`chatgpt.com/library`)  
@@ -61,27 +64,32 @@
 
 ---
 
-### What's New in v2.0.0
+### What's New in v2.1.0
 
-🎉 **Major UI Redesign:**
-- **Removed popup interface** – No more toolbar icon clicks
-- **Floating panel on Library page** – Direct, always-visible interface
-- **Collapsible design** – Click `−` to minimize, `+` to expand
-- **Draggable interface** – Reposition panel anywhere on screen
-- **Enhanced UX** – Cleaner, more intuitive controls
+🎯 **Image Selection:**
+- **Thumbnail preview grid** — See small previews of all images before downloading
+- **Select/Deselect All** — Quick bulk selection controls
+- **Individual checkboxes** — Choose exactly which images to download
+- **Selection counter** — Shows how many images are selected
+- **Fast thumbnails** — Uses API thumbnail URLs for instant loading
 
-🚀 **Improved Functionality:**
-- **Smart filenames** – Uses image titles/prompts from ChatGPT API
-- **Pause/Resume** – Control downloads mid-process
-- **Better progress tracking** – Real-time updates with success/fail counts
-- **Multi-tab sync** – Download state syncs across Library tabs
-- **Background persistence** – Downloads continue when panel is collapsed
+🚨 **Error Reporting:**
+- **Detailed failure information** — See title, reason, and position for each failed download
+- **Collapsible error section** — View full details or minimize to save space
+- **Error indicators** — Clear visual feedback when downloads fail
+- **Persistent error log** — Review failures even after download completes
 
-🔧 **Technical Improvements:**
-- **Simplified architecture** – 2 core files (background.js + panel.js)
-- **Better error handling** – More informative status messages
-- **Improved authentication** – Automatic capture from backend-api requests
-- **Enhanced reliability** – Downloads continue regardless of UI state
+🎨 **Theme Improvements:**
+- **Unified color system** — Blue for actions, red for errors, green for success, gray for neutral
+- **Consistent checkboxes** — Custom styled checkboxes that match theme
+- **Better dark mode** — Improved contrast and readability
+- **Coherent hover states** — Subtle, consistent button feedback
+
+✨ **UX Enhancements:**
+- **Non-selectable text** — Cleaner interface, no accidental text selection
+- **Better panel positioning** — z-index adjusted to not block ChatGPT UI elements
+- **Improved button theming** — Stop button properly themed in dark mode
+- **Smoother transitions** — 8-second delay before hiding completion messages
 
 ---
 
@@ -102,15 +110,15 @@ Potential features for upcoming versions:
 
 - [ ] Remember panel position across sessions  
 - [ ] Remember collapsed/expanded state  
+- [ ] Remember selected images across sessions  
 - [ ] Filter downloads by date range  
-- [ ] Download selected images only  
+- [ ] Sort images by date, name, or size  
 - [ ] Batch download with parallel control  
-- [ ] Thumbnail preview mode  
 - [ ] Metadata export to CSV  
 - [ ] Custom folder organization options  
-- [ ] Keyboard shortcuts  
-- [ ] Dark mode theme  
-- [ ] Chrome support build  
+- [ ] Keyboard shortcuts (Ctrl+A to select all, etc.)  
+- [ ] Advanced filtering (by conversation, by model, etc.)  
+- [ ] Download statistics and history  
 
 ---
 
@@ -118,14 +126,14 @@ Potential features for upcoming versions:
 
 - **Manifest Version:** 2 (Firefox standard)  
 - **Architecture:**  
-  - **background.js** – Persistent background script for downloads and auth
-  - **panel.js** – Content script injected into Library page
+  - **background.js** — Persistent background script for downloads and auth
+  - **panel.js** — Content script injected into Library page
 - **APIs Used:**  
-  - **WebRequest API** – Authentication header capture  
-  - **Storage API** – Token storage  
-  - **Downloads API** – File download management  
-  - **Tabs API** – Cross-tab messaging  
-  - **Runtime API** – Background-content communication  
+  - **WebRequest API** — Authentication header capture  
+  - **Storage API** — Token storage  
+  - **Downloads API** — File download management  
+  - **Tabs API** — Cross-tab messaging  
+  - **Runtime API** — Background-content communication  
 - **Backend:** ChatGPT Backend API (`backend-api/my/recent/image_gen`)  
 - **Languages:** JavaScript (ES6+), HTML, CSS  
 
@@ -136,30 +144,32 @@ Potential features for upcoming versions:
 1. **Authentication:** Extension monitors network requests to `backend-api` and captures Authorization headers
 2. **UI Injection:** `panel.js` creates floating panel on Library page load
 3. **Fetching:** Panel sends authenticated API request to fetch image library (up to 9000 items)
-4. **Downloading:** User clicks "Download All" → images sent to background script → sequential download with progress updates
-5. **State Sync:** Download progress broadcasts to all open Library tabs via `tabs.sendMessage`
-6. **Pause/Resume:** Background script maintains pause flag, content waits during paused state
+4. **Image Display:** Thumbnails rendered using `encodings.thumbnail.path` from API for fast loading
+5. **Selection:** User checks/unchecks images to download, or uses Select All/Deselect All
+6. **Downloading:** User clicks "Download All" → selected images sent to background script → sequential download with progress updates
+7. **Error Tracking:** Failed downloads tracked with title, reason, and position → displayed in collapsible error section
+8. **State Sync:** Download progress broadcasts to all open Library tabs via `tabs.sendMessage`
+9. **Pause/Resume:** Background script maintains pause flag, content waits during paused state
 
 ---
 
-### Migration from v1.x
+### Migration from v2.0.x
 
-**Breaking Changes:**
-- No more popup interface – panel appears directly on Library page
-- No more "Open in Window" feature – panel is always visible on Library page
-- No more toolbar icon – extension works automatically when on Library page
+**New Features:**
+- Image selection interface with thumbnails
+- Detailed error reporting
+- Improved theming and UX
 
 **Upgrade Steps:**
-1. Backup any custom settings (none needed for this extension)
-2. Remove old version from `about:debugging`
-3. Load new version (manifest.json)
-4. Visit `chatgpt.com/library` to see the new panel interface
+1. Remove old version from `about:debugging`
+2. Load new version (manifest.json)
+3. Visit `chatgpt.com/library` to see the updated interface
 
 **Benefits:**
-- Faster workflow – no toolbar icon clicks needed
-- Better UX – interface integrated into page
-- More control – collapsible, draggable panel
-- Enhanced features – pause/resume, better progress tracking
+- Selective downloading — choose specific images
+- Better error visibility — know exactly what failed
+- Improved aesthetics — coherent color system
+- Enhanced usability — smoother interactions
 
 ---
 
@@ -198,8 +208,8 @@ SOFTWARE.
 
 ---
 
-**Version:** 2.0.0  
+**Version:** 2.1.0  
 **Release Date:** November 2025  
 **Status:** Stable  
 **Architecture:** Panel-based UI with background downloads  
-**Compatibility:** Firefox 60+
+**Compatibility:** Firefox 109+

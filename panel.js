@@ -266,13 +266,19 @@ function watchThemeChanges() {
 }
 
 // -----------------------------------------------------------------------------
-// Check if we're on the library page
+// Check if we're on the Images hub (or legacy Library)
 // -----------------------------------------------------------------------------
-function isOnLibraryPage() {
-    return window.location.pathname.includes('/library') ||
-        window.location.href.includes('#library') ||
-        window.location.search.includes('library');
+function isOnImagesHub() {
+  const p = window.location.pathname;
+  const href = window.location.href;
+
+  return (
+    p.startsWith('/images') ||
+    p.startsWith('/library') || // keep legacy
+    href.includes('library?tab=images')
+  );
 }
+
 
 // -----------------------------------------------------------------------------
 // Create the floating panel
@@ -1362,12 +1368,13 @@ window.addEventListener('beforeunload', () => {
 function updateVisibility() {
     if (!panel) return;
 
-    if (isOnLibraryPage()) {
+    if (isOnImagesHub()) {
         panel.style.display = 'block';
     } else {
         panel.style.display = 'none';
     }
 }
+
 
 // -----------------------------------------------------------------------------
 // Initialize

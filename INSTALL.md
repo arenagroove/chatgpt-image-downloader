@@ -36,13 +36,14 @@ You have two options:
 
 ✅ **Done!** The extension is now installed and active.
 
-> **Note:** After installing, visit `chatgpt.com` and navigate to the Library page. The extension will automatically capture authentication headers when you interact with ChatGPT.
+> **Note:** After installing, visit `chatgpt.com` and navigate to the **Images hub**.  
+> The extension will automatically capture authentication headers when you interact with ChatGPT.
 
 ---
 
 ### 3. First Use
 
-1. Go to **[chatgpt.com/library](https://chatgpt.com/library)** and make sure you're logged in
+1. Go to **https://chatgpt.com/images** and make sure you're logged in
 2. The **floating panel** will appear automatically in the top-right corner
 3. If you see **"✓ Authenticated"** in the panel, you're ready to go
 4. If not, interact with the page (scroll, click) to trigger authentication capture
@@ -52,20 +53,22 @@ You have two options:
 All your generated images will be saved to:  
 `Downloads/chatgpt-images/`
 
+> Legacy routes under `chatgpt.com/library` are supported where still available.
+
 ---
 
 ## 🎨 Using the Interface
 
 ### Panel Controls
 
-The extension uses a **floating panel** that appears only on the ChatGPT Library page:
+The extension uses a **floating panel** that appears only on the ChatGPT Images hub:
 
-- **Collapse/Expand** – Click the `−` button in the panel header to minimize it to header-only. Click `+` to expand it again.
+- **Collapse / Expand** – Click the `−` button in the panel header to minimize it to header-only. Click `+` to expand it again.
 - **Drag to Reposition** – Click and hold the panel header (not the buttons) to drag it anywhere on screen.
-- **Fetch Images** – Loads your image library from ChatGPT API (up to 9000 images).
+- **Fetch Images** – Loads your image list from the ChatGPT API (up to 9000 images).
 - **Download All** – Starts downloading all fetched images sequentially.
-- **Pause/Resume** – Control the download process mid-operation.
-- **Fetch Again** – After a download completes, refresh the library to check for new images.
+- **Pause / Resume** – Control the download process mid-operation.
+- **Fetch Again** – After a download completes, refresh the image list to check for new images.
 
 ### Download Process
 
@@ -81,19 +84,20 @@ The extension uses a **floating panel** that appears only on the ChatGPT Library
 
 - **Temporary Installation:**  
   Firefox removes temporary add-ons after restart.  
-  To keep it permanently, reload it manually via `about:debugging` each time, or submit/sign it through [addons.mozilla.org](https://addons.mozilla.org/).
+  To keep it permanently, reload it manually via `about:debugging` each time, or submit/sign it through addons.mozilla.org.
 
-- **Library Page Only:**  
-  The panel appears **only on the Library page** (`chatgpt.com/library`).  
+- **Images Hub Only:**  
+  The panel appears **only on the Images hub** (`chatgpt.com/images`)  
+  and legacy Library routes where still available.  
   It will not appear on regular chat pages.
 
 - **Auth Expiration:**  
   ChatGPT authentication tokens expire after ~1 hour.  
-  Simply refresh the Library page and interact with ChatGPT to renew it automatically.
+  Simply refresh the Images hub and interact with ChatGPT to renew it automatically.
 
 - **Download Limits:**  
   The extension supports up to **9000 images** per fetch (ChatGPT API limit).  
-  Downloads are sequential with a 200ms delay to prevent rate limiting.
+  Downloads are sequential with a 200 ms delay to prevent rate limiting.
 
 - **Background Downloads:**  
   Downloads run in the background script and continue even if you:
@@ -110,8 +114,8 @@ The extension uses a **floating panel** that appears only on the ChatGPT Library
 - Check that all required files are in the same folder
 
 ### Panel doesn't appear
-- Make sure you're on the **Library page** (`chatgpt.com/library`)
-- The panel only shows on Library pages, not on chat pages
+- Make sure you're on the **Images hub** (`chatgpt.com/images`)
+- The panel only shows on Images pages, not on chat pages
 - Try refreshing the page
 - Check the browser console (F12) for errors
 
@@ -124,7 +128,7 @@ The extension uses a **floating panel** that appears only on the ChatGPT Library
 
 ### "API returned 401" or fetch fails
 - Your session may have expired
-- Refresh the Library page to renew authentication
+- Refresh the Images hub to renew authentication
 - Log out and log back in to ChatGPT if the issue persists
 
 ### Downloads not starting
@@ -141,36 +145,33 @@ The extension uses a **floating panel** that appears only on the ChatGPT Library
 ### Progress bar doesn't update
 - This is normal for very fast downloads
 - Check your Downloads folder to verify files are being saved
-- Progress updates occur every ~200ms during active downloads
+- Progress updates occur every ~200 ms during active downloads
 
 ---
 
 ## 🛠️ Development Mode
 
-If you're developing or modifying the extension:
-
 ### Making Changes
 1. Edit the code files (`background.js`, `panel.js`, etc.)
 2. Go to `about:debugging`
 3. Click **Reload** next to the extension
-4. Refresh the Library page to see changes
+4. Refresh the Images hub page to see changes
 
 ### Debugging
-- **Background script logs**: `about:debugging` → click **Inspect** next to the extension
-- **Content script logs**: Library page → press **F12** → Console tab
+- **Background script logs:** `about:debugging` → click **Inspect** next to the extension
+- **Content script logs:** Images hub page → press **F12** → Console tab
 
 ### Console Messages
-You should see these when everything is working:
 
 **Background:**
 ```
-✅ ChatGPT Image Downloader background active (using API titles)
+✅ ChatGPT Image Downloader background active
 🎯 Starting download of N images
-📊 Progress: X/N
+📊 Progress: X / N
 ✅ Download complete: N success, M failed
 ```
 
-**Panel (Library page):**
+**Panel (Images hub):**
 ```
 🎨 ChatGPT Image Downloader panel script loaded
 📨 Panel received message: progress
@@ -181,30 +182,19 @@ You should see these when everything is working:
 
 ## 📁 Required Files
 
-Make sure all these files are present in the extension folder:
-
 ```
 chatgpt-image-downloader/
-├── .gitignore         # Git ignore rules
-├── background.js      # Background script (downloads, auth capture)
-├── CHANGELOG.md       # Version history
-├── icon48.png         # Extension icon (48x48)
-├── icon96.png         # Extension icon (96x96)
-├── INSTALL.md         # This file
-├── manifest.json      # Extension configuration
-├── panel.js           # Content script (floating panel UI)
-├── README.md          # Full documentation
-└── VERSION.md         # Current version info
+├── .gitignore
+├── background.js
+├── CHANGELOG.md
+├── icon48.png
+├── icon96.png
+├── INSTALL.md
+├── manifest.json
+├── panel.js
+├── README.md
+└── VERSION.md
 ```
-
----
-
-## 🧾 Additional Documentation
-
-For complete details, see:
-- **README.md** – Full documentation with features and technical details
-- **CHANGELOG.md** – Complete version history and changes
-- **VERSION.md** – Current version and release notes
 
 ---
 
@@ -214,34 +204,19 @@ For complete details, see:
 1. Download or clone the repository
 2. Open `about:debugging` in Firefox
 3. Load `manifest.json` as temporary add-on
-4. Visit `chatgpt.com/library`
+4. Visit `chatgpt.com/images`
 5. Panel appears automatically
 
 ### Usage Steps
-1. Panel shows on Library page
+1. Panel shows on Images hub
 2. Click **Fetch Images**
 3. Click **Download All**
 4. Watch progress bar
 5. Files saved to `Downloads/chatgpt-images/`
 
-### Panel Controls
-- `−` / `+` = Collapse / Expand
-- Drag header = Move panel
-- **Fetch Images** = Load library
-- **Download All** = Start downloads
-- **Pause** / **Resume** = Control downloads
-
 ---
 
-**Version:** 2.0.0  
-**Release Date:** November 4, 2025  
+**Version:** 2.1.1  
+**Release Date:** December 2025  
 **Status:** Stable  
 **License:** MIT License
-
-**What's New in v2.0.0:**  
-- Floating panel interface (replaces popup)
-- Collapsible panel with `−` / `+` buttons
-- Draggable interface
-- Enhanced progress tracking
-- Pause/Resume functionality
-- Multi-tab state sync

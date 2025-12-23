@@ -33,7 +33,7 @@ chatgpt-image-downloader/
 └── .gitignore
 ```
 
-**Icon files are required** - the build will fail without them.
+**Icon files are required** — the build will fail without them.
 
 ---
 
@@ -46,13 +46,14 @@ cd chatgpt-image-downloader
 web-ext build
 ```
 
-This creates: `web-ext-artifacts/chatgpt_image_downloader-2.1.0.xpi`
+This creates:  
+`web-ext-artifacts/chatgpt_image_downloader-2.1.1.xpi`
 
 ### Option 2: Using zip manually
 
 ```bash
 cd chatgpt-image-downloader
-zip -r -FS ../chatgpt-image-downloader-v2.1.0.xpi * \
+zip -r -FS ../chatgpt-image-downloader-v2.1.1.xpi * \
   -x "*.git*" \
   -x "*node_modules*" \
   -x "*.DS_Store" \
@@ -97,15 +98,15 @@ This creates a signed `.xpi` that can be permanently installed in Firefox.
 
 ### GitHub Release
 
-1. Create a new release tag: `v2.1.0`
+1. Create a new release tag: `v2.1.1`
 2. Upload the `.xpi` file as an asset
 3. Users can download and install directly
 
 ### Mozilla Addons (AMO)
 
-1. Go to [addons.mozilla.org/developers](https://addons.mozilla.org/developers)
+1. Go to https://addons.mozilla.org/developers
 2. Upload the `.xpi` file
-3. Wait for review (~7-14 days)
+3. Wait for review (~7–14 days)
 4. Extension becomes permanently installable
 
 ---
@@ -114,7 +115,7 @@ This creates a signed `.xpi` that can be permanently installed in Firefox.
 
 Current build size: **~35 KB** (uncompressed)
 
-The `.xpi` file will be **~15-20 KB** (compressed)
+The `.xpi` file will be **~15–20 KB** (compressed)
 
 ---
 
@@ -123,7 +124,7 @@ The `.xpi` file will be **~15-20 KB** (compressed)
 After building, verify the XPI contains all required files:
 
 ```bash
-unzip -l web-ext-artifacts/chatgpt_image_downloader-2.1.0.xpi
+unzip -l web-ext-artifacts/chatgpt_image_downloader-2.1.1.xpi
 ```
 
 Should show:
@@ -152,8 +153,12 @@ web-ext lint
 
 ### "Build artifacts not created"
 
-Check that `web-ext-artifacts/` directory is created automatically.
-If not, create it manually: `mkdir web-ext-artifacts`
+Check that the `web-ext-artifacts/` directory is created automatically.  
+If not, create it manually:
+
+```bash
+mkdir web-ext-artifacts
+```
 
 ---
 
@@ -175,6 +180,6 @@ web-ext sign --api-key=KEY --api-secret=SECRET
 
 ---
 
-**Output:** `web-ext-artifacts/chatgpt_image_downloader-2.1.0.xpi`  
-**Version:** 2.1.0  
-**Date:** November 2025
+**Output:** `web-ext-artifacts/chatgpt_image_downloader-2.1.1.xpi`  
+**Version:** 2.1.1  
+**Date:** December 2025

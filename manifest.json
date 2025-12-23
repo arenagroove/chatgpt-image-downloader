@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "ChatGPT Image Downloader",
-  "version": "2.1.0",
-  "description": "Download all your generated images from your ChatGPT Library with one click. Select specific images, view thumbnails, and get detailed error reports. Fully local and privacy-safe.",
+  "version": "2.1.1",
+  "description": "Download all generated images from your ChatGPT Images hub with one click. Select specific images, view thumbnails, and get detailed error reports. Fully local and privacy-safe.",
   "permissions": [
     "https://chatgpt.com/*",
     "webRequest",
